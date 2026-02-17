@@ -27,12 +27,15 @@ except ImportError:
 try:
     if torch.cuda.is_available():
         DEVICE = torch.device('cuda:0')
+        print(f"Device: CUDA ({torch.cuda.get_device_name(0)})")
     elif torch.backends.mps.is_available():
         DEVICE = torch.device('mps')
+        print("Device: MPS (Apple Silicon GPU)")
     else:
         DEVICE = torch.device('cpu')
+        print("Device: CPU (no GPU detected - install CUDA toolkit for GPU acceleration)")
 except Exception as e:
-    print(f"Using CPU.  Setting Cuda or MPS failed: {e}")
+    print(f"Device: CPU (Setting CUDA or MPS failed: {e})")
     DEVICE = torch.device('cpu')
 
 class Net(torch.nn.Module):
@@ -216,6 +219,7 @@ def remove(
     only_mask=False,
     background_color=None,
     background_image=None,
+    mask_threshold=None,
 ):
     model = get_model(model_name)
 
@@ -231,6 +235,10 @@ def remove(
             raise ValueError(f"Invalid image input to `remove()`: {e}")
 
     mask = detect.predict(model, np.array(img)).convert("L")
+
+    # Apply threshold for hard/sharp edges (fixes #122)
+    if mask_threshold is not None:
+        mask = mask.point(lambda p: 255 if p > mask_threshold else 0)
 
     # If only_mask is True, return just the mask
     if only_mask:

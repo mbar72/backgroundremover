@@ -72,6 +72,14 @@ def main():
     )
 
     ap.add_argument(
+        "-mt",
+        "--mask-threshold",
+        default=None,
+        type=int,
+        help="Threshold (0-255) to binarize the mask for hard/sharp edges. Useful for cartoonish images. Values around 128 work well.",
+    )
+
+    ap.add_argument(
         "-bc",
         "--background-color",
         type=str,
@@ -240,10 +248,11 @@ def main():
         print("Example: backgroundremover -i video.mp4 -tgwb -bi background.png -o output.gif")
         exit(1)
 
-    # Warn about high worker counts that may cause issues
+    # Cap worker count to prevent hangs and resource exhaustion (see issue #181)
     if args.workernodes > 4:
-        print(f"Warning: Using {args.workernodes} workers. High worker counts (>4) may cause ConnectionResetError or crashes on some systems.")
-        print("If you experience errors, try reducing workers with -wn 1 or -wn 2")
+        print(f"Warning: Requested {args.workernodes} workers, capping at 4. Higher values cause hangs and GPU memory exhaustion.")
+        print("Use -wn 1 through -wn 4 for best results.")
+        args.workernodes = 4
 
     # Parse background color if provided
     background_color = None
@@ -348,6 +357,7 @@ def main():
                             only_mask=args.only_mask,
                             background_color=background_color,
                             background_image=background_image,
+                            mask_threshold=args.mask_threshold,
                         ),
                     )
         return
