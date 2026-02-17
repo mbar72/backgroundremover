@@ -132,7 +132,7 @@ def main():
         "--alpha-codec",
         default="auto",
         type=str,
-        help="Codec for transparent video output (auto, prores_ks, qtrle, libvpx-vp9). Auto defaults to lossless qtrle.",
+        help="Codec for transparent video output (auto, prores_ks, qtrle, libvpx-vp9). Auto defaults to prores_ks (ProRes 4444).",
     )
     ap.add_argument(
         "--alpha-pix-fmt",
